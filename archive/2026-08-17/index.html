@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026 主流 LLM API 价格与 ROI 对比表 · 交互版</title>
+<title>2026 主流 LLM API 价格与 ROI 对比表 · 交互版 · 玻璃白视觉Gate</title>
 <style>
 :root{
   --bg:#f7f9fc; --panel:#ffffff; --panel2:#eef2f8; --line:#dde4ee;
@@ -68,9 +68,42 @@ tr.hl-info td{background:rgba(37,99,235,.07)}
 footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:12px}
 .note{font-size:12px;color:var(--dim);margin-top:8px}
 @media(max-width:760px){.search{width:100%;margin-left:0}}
+
+/* —— 玻璃白视觉Gate：Apple 式流体玻璃网页近似（仅背景材质层，内容与数据未动） —— */
+html{background:linear-gradient(132deg,#f4f6f8 0%,#e6ebf0 46%,#f6f8f9 100%)}
+body{background:transparent}
+#fluid-canvas{position:fixed;inset:0;z-index:0;width:100%;height:100%;pointer-events:none}
+.soft-grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.10;mix-blend-mode:soft-light;background-image:repeating-radial-gradient(circle at 18% 26%,rgba(60,72,84,.12) 0 .45px,transparent .65px 3px),repeating-radial-gradient(circle at 72% 61%,rgba(255,255,255,.25) 0 .4px,transparent .65px 4px);background-size:5px 5px,7px 7px}
+.wrap{position:relative;z-index:2}
+.chip,.card,.tab,.search,#scatter,.formula,table{
+  background:rgba(255,255,255,.52);
+  -webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%);
+  border:1px solid rgba(255,255,255,.70);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 12px 32px rgba(70,84,98,.10);
+}
+th{background:rgba(232,238,244,.55)}
+#tooltip{background:rgba(255,255,255,.88);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+header{border-bottom-color:rgba(90,104,120,.18)}
+footer{border-top-color:rgba(90,104,120,.18)}
+.glass-dock{position:fixed;z-index:20;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:7px;border:1px solid rgba(255,255,255,.65);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.55),rgba(255,255,255,.22));-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 14px 36px rgba(70,84,98,.16)}
+.glass-dock button{min-height:34px;padding:0 14px;border:0;border-radius:11px;background:transparent;color:rgba(26,35,50,.72);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
+.glass-dock button:hover{background:rgba(255,255,255,.35)}
+.glass-dock button[aria-pressed="true"]{background:rgba(255,255,255,.6);color:#1a2332;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+.glass-dock .motion-state{min-width:72px;text-align:center;font-size:11px;color:rgba(26,35,50,.5);white-space:nowrap}
+.gate-note{position:fixed;z-index:20;left:18px;bottom:18px;max-width:290px;font-size:11px;line-height:1.55;color:rgba(26,35,50,.55);padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.65);background:rgba(255,255,255,.5);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.is-fallback #fluid-canvas{display:none}
+@media(max-width:760px){.gate-note{display:none}}
+@media(prefers-reduced-transparency:reduce){
+  .chip,.card,.tab,.search,#scatter,.formula,table,.glass-dock,.gate-note{background:rgba(248,250,252,.96);-webkit-backdrop-filter:none;backdrop-filter:none}
+  #fluid-canvas,.soft-grain{display:none}
+  body{background:#f7f9fc}
+}
 </style>
 </head>
 <body>
+<canvas id="fluid-canvas" aria-hidden="true"></canvas>
+<div class="soft-grain" aria-hidden="true"></div>
 <div class="wrap">
 <header>
   <h1>2026 主流 LLM API 价格与 <span class="accent">ROI</span> 对比表</h1>
@@ -294,6 +327,330 @@ $("#eng").innerHTML="<tr><th>厂商</th><th>稳定性</th><th>工具生态</th><
 // sources & gaps
 $("#sources").innerHTML=D.sources.map(([n,u,t])=>`<div class="src"><span class="tier ${t.toLowerCase()}">${t}</span><a href="${u}" target="_blank">${n}</a></div>`).join("");
 $("#gaps").innerHTML=D.gaps.map(g=>`<li>${g}</li>`).join("");
+</script>
+
+<div class="glass-dock" role="group" aria-label="背景材质控制">
+  <button id="pause-motion" type="button" aria-pressed="false">暂停流动</button>
+  <button id="reduce-motion" type="button" aria-pressed="false">减少动态</button>
+  <span class="motion-state" id="motion-state">低频流动中</span>
+</div>
+<div class="gate-note">视觉 Gate 测试：白色自选色 · Apple 式流体玻璃网页近似（WebGL 非 Apple 原生 Liquid Glass）。仅改背景材质层，数据与布局未动。</div>
+
+<script>
+/* 玻璃白 Gate：移植 apple-fluid-glass-material starter 的已验证着色器（背景层单画布版） */
+(() => {
+  "use strict";
+
+  /* 白色自选色校准（visual-system §5）：同色相家族相邻 field 色、低饱和银、深灰蓝暗边、小面积高光 */
+  const palette = {
+    fieldA: [0.949, 0.961, 0.969],
+    fieldB: [0.875, 0.906, 0.929],
+    silver: [0.86, 0.88, 0.90],
+    edge: [0.42, 0.50, 0.58],
+    bloom: [1.0, 1.0, 1.0],
+    ribbonLight: [0.995, 1.0, 1.0]
+  };
+
+  const canvas = document.getElementById("fluid-canvas");
+  const pauseButton = document.getElementById("pause-motion");
+  const reduceButton = document.getElementById("reduce-motion");
+  const motionState = document.getElementById("motion-state");
+  const systemReduceQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  const vertexSource = `#version 300 es
+    in vec2 a_position;
+    out vec2 v_uv;
+    void main() {
+      v_uv = a_position * 0.5 + 0.5;
+      gl_Position = vec4(a_position, 0.0, 1.0);
+    }
+  `;
+
+  const fragmentSource = `#version 300 es
+    precision highp float;
+    in vec2 v_uv;
+    out vec4 outColor;
+    uniform vec2 u_viewport;
+    uniform vec2 u_pointer;
+    uniform float u_time;
+    uniform vec3 u_field_a;
+    uniform vec3 u_field_b;
+    uniform vec3 u_silver;
+    uniform vec3 u_edge;
+    uniform vec3 u_bloom;
+    uniform vec3 u_ribbon_light;
+
+    float hash21(vec2 p) {
+      p = fract(p * vec2(123.34, 456.21));
+      p += dot(p, p + 45.32);
+      return fract(p.x * p.y);
+    }
+    float valueNoise(vec2 p) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      f = f * f * (3.0 - 2.0 * f);
+      float a = hash21(i);
+      float b = hash21(i + vec2(1.0, 0.0));
+      float c = hash21(i + vec2(0.0, 1.0));
+      float d = hash21(i + vec2(1.0, 1.0));
+      return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+    }
+    float fbm(vec2 p) {
+      float result = 0.0;
+      float amplitude = 0.52;
+      mat2 turn = mat2(0.82, -0.57, 0.57, 0.82);
+      for (int i = 0; i < 4; i++) {
+        result += amplitude * valueNoise(p);
+        p = turn * p * 1.93 + 0.17;
+        amplitude *= 0.48;
+      }
+      return result;
+    }
+    vec3 ribbon(vec3 color, float distanceField, float intensity) {
+      float softLight = exp(-abs(distanceField) * 5.2) * intensity;
+      float whiteEdge = exp(-abs(distanceField + 0.010) * 45.0) * intensity;
+      float darkEdge = exp(-abs(distanceField - 0.040) * 32.0) * intensity;
+      color = mix(color, u_ribbon_light, softLight * 0.26 + whiteEdge * 0.58);
+      color = mix(color, u_edge, darkEdge * 0.16);
+      return color;
+    }
+    vec3 fluidScene(vec2 uv, float time) {
+      float aspect = u_viewport.x / max(u_viewport.y, 1.0);
+      vec2 p = (uv - 0.5) * vec2(aspect, 1.0);
+      vec2 pointerP = (u_pointer - 0.5) * vec2(aspect, 1.0);
+      float pointerFalloff = exp(-dot(p - pointerP, p - pointerP) * 2.1);
+      float lowNoise = fbm(p * 0.55 + vec2(time * 0.018, -time * 0.011));
+      float crossNoise = fbm(p.yx * 0.82 + vec2(-time * 0.014, time * 0.009));
+      p += vec2(lowNoise - 0.5, crossNoise - 0.5) * 0.18;
+      p += (pointerP - p) * pointerFalloff * 0.017;
+      float wash = fbm(p * 0.72 + vec2(time * 0.010, time * 0.006));
+      float silver = smoothstep(0.28, 0.78, fbm(p * 0.42 - vec2(time * 0.007, 0.0)));
+      vec3 color = mix(u_field_a, u_field_b, wash);
+      color = mix(color, u_silver, silver * 0.52);
+      float phase = time * 0.035;
+      float d1 = p.y - (0.46 * sin(p.x * 1.10 + phase) + 0.28 + (lowNoise - 0.5) * 0.17);
+      float d2 = p.y - (0.62 * sin(p.x * 0.78 - phase * 0.72 + 1.85) - 0.56 + (crossNoise - 0.5) * 0.14);
+      float d3 = p.x - (0.54 * sin(p.y * 0.92 + phase * 0.58 + 0.70) + 0.94 + (wash - 0.5) * 0.20);
+      float d4 = p.y - (0.34 * sin(p.x * 1.28 - phase * 0.48 + 3.10) + 0.88);
+      vec2 arcPointA = (p - vec2(1.18 + sin(phase * 0.21) * 0.10, -0.34)) * vec2(0.88, 1.0);
+      vec2 arcPointB = (p - vec2(-1.26, 0.74 + cos(phase * 0.18) * 0.09)) * vec2(0.78, 1.0);
+      float d5 = length(arcPointA) - 0.88;
+      float d6 = length(arcPointB) - 0.76;
+      color = ribbon(color, d1, 0.85);
+      color = ribbon(color, d2, 0.70);
+      color = ribbon(color, d3, 0.58);
+      color = ribbon(color, d4, 0.42);
+      color = ribbon(color, d5, 0.60);
+      color = ribbon(color, d6, 0.40);
+      float bloom = exp(-dot(p - vec2(-0.38, 0.16), p - vec2(-0.38, 0.16)) * 1.65);
+      color = mix(color, u_bloom, bloom * 0.10);
+      color += (hash21(gl_FragCoord.xy) - 0.5) / 520.0;
+      return color;
+    }
+    void main() {
+      vec3 color = fluidScene(v_uv, u_time);
+      float vignette = smoothstep(0.92, 0.28, length((v_uv - 0.5) * vec2(0.82, 1.0)));
+      color = mix(color * 0.97, color, vignette);
+      outColor = vec4(color, 1.0);
+    }
+  `;
+
+  const state = {
+    paused: false,
+    manuallyReduced: false,
+    systemReduced: systemReduceQuery.matches,
+    visible: !document.hidden,
+    elapsed: 2.6,
+    lastFrame: performance.now(),
+    frameRequest: 0,
+    pointer: { x: 0.63, y: 0.43 },
+    targetPointer: { x: 0.63, y: 0.43 }
+  };
+
+  function compileShader(gl, type, source) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      const message = gl.getShaderInfoLog(shader) || "着色器编译失败";
+      gl.deleteShader(shader);
+      throw new Error(message);
+    }
+    return shader;
+  }
+
+  let gl = null, uniforms = null;
+
+  function initRenderer() {
+    gl = canvas.getContext("webgl2", {
+      alpha: false, antialias: false, depth: false, stencil: false,
+      powerPreference: "high-performance"
+    });
+    if (!gl) throw new Error("WebGL2 不可用");
+    const vertex = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
+    const fragment = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+    const program = gl.createProgram();
+    gl.attachShader(program, vertex);
+    gl.attachShader(program, fragment);
+    gl.linkProgram(program);
+    gl.deleteShader(vertex);
+    gl.deleteShader(fragment);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      throw new Error(gl.getProgramInfoLog(program) || "着色器链接失败");
+    }
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      -1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1
+    ]), gl.STATIC_DRAW);
+    const positionLocation = gl.getAttribLocation(program, "a_position");
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+    uniforms = {
+      viewport: gl.getUniformLocation(program, "u_viewport"),
+      pointer: gl.getUniformLocation(program, "u_pointer"),
+      time: gl.getUniformLocation(program, "u_time"),
+      fieldA: gl.getUniformLocation(program, "u_field_a"),
+      fieldB: gl.getUniformLocation(program, "u_field_b"),
+      silver: gl.getUniformLocation(program, "u_silver"),
+      edge: gl.getUniformLocation(program, "u_edge"),
+      bloom: gl.getUniformLocation(program, "u_bloom"),
+      ribbonLight: gl.getUniformLocation(program, "u_ribbon_light")
+    };
+    gl.useProgram(program);
+  }
+
+  function draw() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.45);
+    const width = Math.max(1, Math.round(rect.width * dpr));
+    const height = Math.max(1, Math.round(rect.height * dpr));
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
+    gl.viewport(0, 0, width, height);
+    gl.uniform2f(uniforms.viewport, window.innerWidth, window.innerHeight);
+    gl.uniform2f(uniforms.pointer, state.pointer.x, 1 - state.pointer.y);
+    gl.uniform1f(uniforms.time, state.elapsed);
+    gl.uniform3fv(uniforms.fieldA, palette.fieldA);
+    gl.uniform3fv(uniforms.fieldB, palette.fieldB);
+    gl.uniform3fv(uniforms.silver, palette.silver);
+    gl.uniform3fv(uniforms.edge, palette.edge);
+    gl.uniform3fv(uniforms.bloom, palette.bloom);
+    gl.uniform3fv(uniforms.ribbonLight, palette.ribbonLight);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
+
+  function reduced() {
+    return state.systemReduced || state.manuallyReduced;
+  }
+
+  function updateControls() {
+    const isReduced = reduced();
+    pauseButton.setAttribute("aria-pressed", String(state.paused));
+    reduceButton.setAttribute("aria-pressed", String(state.manuallyReduced));
+    pauseButton.textContent = state.paused ? "继续流动" : "暂停流动";
+    motionState.textContent = isReduced ? "静态参考" : state.paused ? "已暂停" : "低频流动中";
+  }
+
+  function requestRender() {
+    if (!state.frameRequest && state.visible && gl) {
+      state.frameRequest = window.requestAnimationFrame(renderFrame);
+    }
+  }
+
+  function renderFrame(now) {
+    state.frameRequest = 0;
+    const delta = Math.min(48, Math.max(0, now - state.lastFrame));
+    state.lastFrame = now;
+    const motionActive = !state.paused && !reduced();
+    if (motionActive) state.elapsed += delta * 0.001;
+    const easing = motionActive ? 0.032 : 0.12;
+    state.pointer.x += (state.targetPointer.x - state.pointer.x) * easing;
+    state.pointer.y += (state.targetPointer.y - state.pointer.y) * easing;
+    draw();
+    if (motionActive) requestRender();
+  }
+
+  function enableFallback() {
+    document.body.classList.add("is-fallback");
+    motionState.textContent = "静态预览";
+    pauseButton.disabled = true;
+    reduceButton.disabled = true;
+  }
+
+  try {
+    initRenderer();
+  } catch (error) {
+    console.error("流体背景无法启动：", error);
+    enableFallback();
+  }
+
+  window.addEventListener("pointermove", (event) => {
+    state.targetPointer.x = event.clientX / Math.max(1, window.innerWidth);
+    state.targetPointer.y = event.clientY / Math.max(1, window.innerHeight);
+    if (state.paused || reduced()) requestRender();
+  }, { passive: true });
+
+  window.addEventListener("pointerleave", () => {
+    state.targetPointer.x = 0.63;
+    state.targetPointer.y = 0.43;
+    requestRender();
+  });
+
+  window.addEventListener("resize", requestRender, { passive: true });
+
+  document.addEventListener("visibilitychange", () => {
+    state.visible = !document.hidden;
+    state.lastFrame = performance.now();
+    if (state.visible) requestRender();
+  });
+
+  pauseButton.addEventListener("click", () => {
+    state.paused = !state.paused;
+    state.lastFrame = performance.now();
+    updateControls();
+    requestRender();
+  });
+
+  reduceButton.addEventListener("click", () => {
+    state.manuallyReduced = !state.manuallyReduced;
+    state.lastFrame = performance.now();
+    updateControls();
+    requestRender();
+  });
+
+  systemReduceQuery.addEventListener("change", (event) => {
+    state.systemReduced = event.matches;
+    state.lastFrame = performance.now();
+    updateControls();
+    requestRender();
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLButtonElement ||
+      event.target instanceof HTMLAnchorElement
+    ) return;
+    if (event.code === "Space") {
+      event.preventDefault();
+      pauseButton.click();
+    }
+    if (event.key === "Escape" && !state.manuallyReduced) {
+      reduceButton.click();
+    }
+  });
+
+  canvas.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    enableFallback();
+  });
+
+  updateControls();
+  requestRender();
+})();
 </script>
 </body>
 </html>
