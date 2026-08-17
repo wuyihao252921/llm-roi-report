@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 主流 LLM API 价格与 ROI 对比表 · 交互版</title>
+<style>
+:root{
+  --bg:#f7f9fc; --panel:#ffffff; --panel2:#eef2f8; --line:#dde4ee;
+  --txt:#1a2332; --dim:#5b6b7f; --blue:#0066ff; --blue2:#0066ff; --cyan:#0e7dc2;
+  --good:#15803d; --warn:#d64541; --info:#2563eb;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;line-height:1.55}
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px 80px}
+header{padding:48px 0 24px;border-bottom:1px solid var(--line)}
+h1{font-size:30px;letter-spacing:.5px}
+h1 .accent{color:var(--cyan)}
+.sub{color:var(--dim);margin-top:8px;font-size:14px}
+.chips{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:13px}
+.chip b{color:var(--cyan);font-size:18px;margin-right:6px}
+section{margin-top:44px}
+h2{font-size:20px;border-left:4px solid var(--blue);padding-left:12px;margin-bottom:16px}
+h2 .tag{font-size:11px;color:var(--dim);margin-left:10px;letter-spacing:1px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:13px}
+.card h3{font-size:14px;margin-bottom:6px}
+.card p{color:var(--dim)}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:1px}
+.b-good{background:rgba(31,174,122,.15);color:var(--good)}
+.b-warn{background:rgba(224,86,78,.15);color:var(--warn)}
+.b-info{background:rgba(61,139,255,.15);color:var(--info)}
+table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--panel);border-radius:12px;overflow:hidden}
+th{background:var(--panel2);color:var(--cyan);font-weight:600;padding:9px 8px;cursor:pointer;user-select:none;white-space:nowrap}
+th:hover{color:var(--blue)}
+td{padding:8px;border-top:1px solid var(--line);color:var(--txt)}
+td.dim{color:var(--dim)}
+tr:hover td{background:rgba(0,102,255,.06)}
+tr.hl-good td{background:rgba(21,128,61,.07)}
+tr.hl-warn td{background:rgba(214,69,65,.07)}
+tr.hl-info td{background:rgba(37,99,235,.07)}
+.tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.tab{background:var(--panel);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:7px 16px;cursor:pointer;font-size:13px}
+.tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.search{margin-left:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:7px 12px;font-size:13px;width:200px}
+.num{font-variant-numeric:tabular-nums;text-align:right}
+.center{text-align:center}
+.roi-pill{display:inline-block;min-width:30px;text-align:center;border-radius:6px;padding:1px 6px;font-weight:700}
+#scatter{width:100%;height:400px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--dim);margin-top:8px;flex-wrap:wrap}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+#tooltip{position:fixed;pointer-events:none;background:#ffffff;border:1px solid var(--blue);border-radius:10px;padding:10px 12px;font-size:12px;display:none;z-index:10;max-width:300px;box-shadow:0 6px 24px rgba(26,35,50,.18)}
+#tooltip b{color:var(--cyan)}
+.barrow{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px}
+.barrow .name{width:170px;text-align:right;color:var(--dim);white-space:nowrap}
+.bar{height:13px;border-radius:3px}
+.barA{background:var(--blue2)} .barB{background:var(--cyan)} .barC{background:#7a5cff}
+.formula{background:var(--panel);border:1px solid var(--blue);border-radius:12px;padding:16px 20px;font-size:15px;text-align:center;color:var(--cyan);margin:12px 0}
+.src{font-size:13px;margin:5px 0}
+.src a{color:var(--blue2);text-decoration:none}
+.src a:hover{text-decoration:underline}
+.tier{font-size:10px;font-weight:700;border-radius:4px;padding:1px 6px;margin-right:8px}
+.t1{background:rgba(31,174,122,.18);color:var(--good)} .t2{background:rgba(61,139,255,.18);color:var(--info)} .t3{background:rgba(224,86,78,.15);color:var(--warn)}
+.gaps li{color:var(--dim);font-size:13px;margin:5px 0}
+footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:12px}
+.note{font-size:12px;color:var(--dim);margin-top:8px}
+@media(max-width:760px){.search{width:100%;margin-left:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>2026 主流 LLM API 价格与 <span class="accent">ROI</span> 对比表</h1>
+  <div class="sub">覆盖全球与中国主流模型 · 统一人民币口径 · 能力与性价比选型（交互版）</div>
+  <div class="chips" id="chips"></div>
+</header>
+
+<section><h2>本期变化<span class="tag">2026-08-09 → 08-17</span></h2><div class="grid" id="changes"></div></section>
+
+<section><h2>能力 × 成本 × ROI 全景<span class="tag">点大小=ROI · 悬停看详情 · 点击图例筛选</span></h2>
+  <div id="scatter"></div>
+  <div class="legend" id="legend"></div>
+  <div class="note">横轴为标准负载成本（100万输入+25万输出，对数轴）；纵轴为能力评分。越靠左上越划算。</div>
+</section>
+
+<section><h2>先看结论</h2><div style="overflow-x:auto"><table id="concl"></table></div></section>
+
+<section><h2>价格明细<span class="tag">点击表头排序 · 元/百万 token</span></h2>
+  <div class="tabs">
+    <div class="tab active" data-mkt="all">全部</div>
+    <div class="tab" data-mkt="ov">海外（18）</div>
+    <div class="tab" data-mkt="cn">国内（23）</div>
+    <input class="search" id="q" placeholder="搜索模型 / 厂商…">
+  </div>
+  <div style="overflow-x:auto"><table id="prices"></table></div>
+  <div class="note">绿=本期利好 · 蓝=新模型 · 红=涨价/风险。DeepSeek 为 8/17 新价闲时档（峰时 ×2）。</div>
+</section>
+
+<section><h2>三种负载画像成本测算<span class="tag">元 / 每100万输入当量</span></h2>
+  <div class="card">
+    <div class="legend" style="margin:0 0 10px">
+      <span><span class="dot" style="background:var(--blue2)"></span>A 内容批量（100万入+25万出）</span>
+      <span><span class="dot" style="background:var(--cyan)"></span>B Agent 重型（100万入+100万出）</span>
+      <span><span class="dot" style="background:#7a5cff"></span>C 长文档审阅（400万入+25万出）</span>
+    </div>
+    <div id="profiles"></div>
+    <div class="note">输出占比越高，Grok 系与 Qwen3.5-Flash 越靠前；输入占比越高，输入价与缓存价定胜负。Kimi K3 未列入：思考 token 按输出计费（实测占 43–77%），B 类实际成本接近估算 2 倍。</div>
+  </div>
+</section>
+
+<section><h2>评分口径<span class="tag">本期升级：可复算公式</span></h2>
+  <div class="formula">ROI = 0.65 × 性价比指数　+　0.35 × 工程指数　（99 封顶）</div>
+  <div class="grid">
+    <div class="card"><h3>性价比指数</h3><p>log10(能力评分 ÷ 标准负载成本) 全表最小-最大归一，最优=100。对数轴：成本差 10 倍 ≈ 能力差 10 分。</p></div>
+    <div class="card"><h3>工程指数</h3><p>0.30×稳定性 + 0.25×工具生态 + 0.25×可替换性 + 0.20×价格可预期性（本期新增——DeepSeek 两月两调价证明低价不可预期则预算价值打折）。</p></div>
+    <div class="card"><h3>能力评分</h3><p>推理30% + 代码25% + 指令与工具20% + 长上下文10% + 多模态10% + 中文5%，锚点打分 + AA/LMArena/SuperCLUE 榜单校准。</p></div>
+  </div>
+  <div style="overflow-x:auto;margin-top:14px"><table id="eng"></table></div>
+</section>
+
+<section><h2>来源与已知缺口<span class="tag">recursive-research 分级法</span></h2>
+  <div class="grid">
+    <div class="card"><h3>资料来源（核验 2026-08-17）</h3><div id="sources"></div></div>
+    <div class="card"><h3>已知缺口（gaps，如实披露）</h3><ul class="gaps" id="gaps"></ul></div>
+  </div>
+</section>
+
+<footer>制作：吴奕浩 · 快照 2026-08-17 · 汇率 1 美元 = 6.7878 元（8/14 中间价）<br>
+设计：Tech Innovation 主题（GitHub anthropics/skills · theme-factory） · 方法：来源 T1/T2/T3 分级（Anjos2/recursive-research）</footer>
+</div>
+<div id="tooltip"></div>
+
+<script>
+const D = {"meta": {"snapshot": "2026-08-17", "fx": 6.7878, "prev": "2026-08-09", "n_models": 41, "n_vendors": 14}, "models": [{"vendor": "OpenAI", "model": "GPT-5.6 Sol", "input": 33.939, "cache": 3.3939, "output": 203.634, "cap": 98, "cap_tier": "顶级", "load": 84.85, "roi": 45, "eng": 80, "scene": "关键推理、复杂系统设计、终审", "note": "长上下文（>27.2万）输入×2、输出×1.5；8/13 预览 Ultrafast 模式", "hl": null, "overseas": true, "p_a": 84.85, "p_b": 237.57, "p_c": 186.66}, {"vendor": "OpenAI", "model": "GPT-5.6 Terra", "input": 13.5756, "cache": 1.3576, "output": 81.4536, "cap": 96, "cap_tier": "顶级", "load": 33.94, "roi": 53, "eng": 80, "scene": "高质量 Agent、代码与业务分析", "note": "综合能力与成本最均衡档", "hl": null, "overseas": true, "p_a": 33.94, "p_b": 95.03, "p_c": 74.67}, {"vendor": "OpenAI", "model": "GPT-5.6 Luna", "input": 1.3576, "cache": 0.1358, "output": 8.1454, "cap": 91, "cap_tier": "强", "load": 3.39, "roi": 74, "eng": 80, "scene": "批量内容、分类、轻量 Agent", "note": "7/30 降价 80% 后价格企稳", "hl": null, "overseas": true, "p_a": 3.39, "p_b": 9.5, "p_c": 7.47}, {"vendor": "OpenAI", "model": "GPT-5.5 Pro", "input": 203.634, "cache": null, "output": 1221.804, "cap": 97, "cap_tier": "顶级", "load": 509.08, "roi": 28, "eng": 80, "scene": "极少量超高价值难题", "note": "上代 Pro 档（深度推理定位），价格高于 Sol 属定价例外", "hl": null, "overseas": true, "p_a": 509.08, "p_b": 1425.44, "p_c": 1119.99}, {"vendor": "Anthropic", "model": "Claude Mythos 5", "input": 67.878, "cache": 6.7878, "output": 339.39, "cap": 99, "cap_tier": "顶级", "load": 152.73, "roi": 40, "eng": 81, "scene": "顶级复杂推理与长程工作", "note": "限量开放；新分词器 token 最多 +35%", "hl": null, "overseas": true, "p_a": 152.73, "p_b": 407.27, "p_c": 356.36}, {"vendor": "Anthropic", "model": "Claude Fable 5", "input": 67.878, "cache": 6.7878, "output": 339.39, "cap": 97, "cap_tier": "顶级", "load": 152.73, "roi": 40, "eng": 81, "scene": "复杂知识工作、创作、Agent", "note": "新分词器 token 最多 +35%", "hl": null, "overseas": true, "p_a": 152.73, "p_b": 407.27, "p_c": 356.36}, {"vendor": "Anthropic", "model": "Claude Opus 5", "input": 33.939, "cache": 3.3939, "output": 169.695, "cap": 98, "cap_tier": "顶级", "load": 76.36, "roi": 46, "eng": 81, "scene": "长程编程、研究、复杂执行", "note": "AA 指数 63，本档第三方验证最强", "hl": null, "overseas": true, "p_a": 76.36, "p_b": 203.63, "p_c": 178.18}, {"vendor": "Anthropic", "model": "Claude Sonnet 5", "input": 13.5756, "cache": 1.3576, "output": 67.878, "cap": 96, "cap_tier": "顶级", "load": 30.55, "roi": 54, "eng": 81, "scene": "编码 Agent、企业知识工作", "note": "8/10 推广价转正为标准价，9/1 涨价取消", "hl": "good", "overseas": true, "p_a": 30.55, "p_b": 81.45, "p_c": 71.27}, {"vendor": "Anthropic", "model": "Claude Haiku 4.5", "input": 6.7878, "cache": 0.6788, "output": 33.939, "cap": 86, "cap_tier": "较强", "load": 15.27, "roi": 60, "eng": 81, "scene": "客服、抽取、分类、批处理", "note": "速度快，复杂推理有限", "hl": null, "overseas": true, "p_a": 15.27, "p_b": 40.73, "p_c": 35.64}, {"vendor": "Google", "model": "Gemini 3.6 Flash", "input": 10.1817, "cache": 1.0182, "output": 50.9085, "cap": 95, "cap_tier": "顶级", "load": 22.91, "roi": 56, "eng": 78, "scene": "多模态理解、搜索、批量 Agent", "note": "全线默认；文/图/视频统一计费", "hl": null, "overseas": true, "p_a": 22.91, "p_b": 61.09, "p_c": 53.45}, {"vendor": "Google", "model": "Gemini 3.1 Pro Preview", "input": 13.5756, "cache": 1.3576, "output": 81.4536, "cap": 96, "cap_tier": "顶级", "load": 33.94, "roi": 52, "eng": 78, "scene": "多模态、代码、复杂 Agent", "note": "≤20万 token；超长 4/18 美元", "hl": null, "overseas": true, "p_a": 33.94, "p_b": 95.03, "p_c": 74.67}, {"vendor": "Google", "model": "Gemini 3 Flash Preview", "input": 3.3939, "cache": 0.3394, "output": 20.3634, "cap": 90, "cap_tier": "强", "load": 8.48, "roi": 65, "eng": 78, "scene": "视频/图片理解、规模化处理", "note": "预览版；生产稳定性需自测", "hl": null, "overseas": true, "p_a": 8.48, "p_b": 23.76, "p_c": 18.67}, {"vendor": "Google", "model": "Gemini 3.5 Flash-Lite", "input": 2.0363, "cache": 0.2036, "output": 16.9695, "cap": 84, "cap_tier": "够用", "load": 6.28, "roi": 67, "eng": 78, "scene": "翻译、简单数据处理、高并发", "note": "全球低成本批量任务首选", "hl": null, "overseas": true, "p_a": 6.28, "p_b": 19.01, "p_c": 12.39}, {"vendor": "xAI", "model": "Grok 4.6", "input": 13.5756, "cache": 3.3939, "output": 40.7268, "cap": 96, "cap_tier": "顶级", "load": 23.76, "roi": 52, "eng": 69, "scene": "长程 Agent、代码、实时信息工作流", "note": "8/12 发布；≥20万 token 整单×2；AA 指数 61 追平 Sol", "hl": "info", "overseas": true, "p_a": 23.76, "p_b": 54.3, "p_c": 64.48}, {"vendor": "xAI", "model": "Grok 4.5", "input": 13.5756, "cache": 2.0363, "output": 40.7268, "cap": 95, "cap_tier": "顶级", "load": 23.76, "roi": 52, "eng": 69, "scene": "编码、工具调用、Agent", "note": "前代旗舰；缓存价比 4.6 便宜 40%", "hl": null, "overseas": true, "p_a": 23.76, "p_b": 54.3, "p_c": 64.48}, {"vendor": "xAI", "model": "Grok 4.3", "input": 8.4848, "cache": 1.3576, "output": 16.9695, "cap": 92, "cap_tier": "强", "load": 12.73, "roi": 58, "eng": 69, "scene": "通用 Agent、工具调用、批量分析", "note": "100万上下文；输出价全场最低档", "hl": null, "overseas": true, "p_a": 12.73, "p_b": 25.45, "p_c": 38.18}, {"vendor": "xAI", "model": "Grok 4.1 Fast", "input": 1.3576, "cache": null, "output": 3.3939, "cap": 83, "cap_tier": "够用", "load": 2.21, "roi": 73, "eng": 69, "scene": "超低价跑量、2M 长上下文批处理", "note": "输出价全球最低；能力仅够轻任务", "hl": "info", "overseas": true, "p_a": 2.21, "p_b": 4.75, "p_c": 6.28}, {"vendor": "Mistral", "model": "Mistral Large", "input": 13.5756, "cache": null, "output": 40.7268, "cap": 89, "cap_tier": "较强", "load": 23.76, "roi": 54, "eng": 76, "scene": "欧洲部署、通用企业任务", "note": "批处理通常半价", "hl": null, "overseas": true, "p_a": 23.76, "p_b": 54.3, "p_c": 64.48}, {"vendor": "DeepSeek", "model": "DeepSeek V4 Pro", "input": 4.5, "cache": 0.15, "output": 13.5, "cap": 96, "cap_tier": "顶级", "load": 7.88, "roi": 64, "eng": 73, "scene": "复杂推理、代码、中文知识工作", "note": "8/17 涨价生效（闲时档）；峰时 9/27；并发上限 500", "hl": "warn", "overseas": false, "p_a": 7.88, "p_b": 18.0, "p_c": 21.38}, {"vendor": "DeepSeek", "model": "DeepSeek V4 Flash", "input": 1.5, "cache": 0.05, "output": 4.5, "cap": 92, "cap_tier": "强", "load": 2.62, "roi": 74, "eng": 73, "scene": "大规模生成、分析、轻量 Agent", "note": "8/17 涨价生效（闲时档）；峰时 3/9；并发上限 2500", "hl": "warn", "overseas": false, "p_a": 2.62, "p_b": 6.0, "p_c": 7.12}, {"vendor": "阿里千问", "model": "Qwen3.8-Max", "input": 12.0, "cache": null, "output": 36.0, "cap": 97, "cap_tier": "顶级", "load": 21.0, "roi": 58, "eng": 82, "scene": "2.4T 参数旗舰、多模态、Agent", "note": "正式版已发布；无折扣；承诺将开源", "hl": "info", "overseas": false, "p_a": 21.0, "p_b": 48.0, "p_c": 57.0}, {"vendor": "阿里千问", "model": "Qwen3.7-Max", "input": 6.0, "cache": null, "output": 18.0, "cap": 96, "cap_tier": "顶级", "load": 10.5, "roi": 65, "eng": 82, "scene": "中文复杂任务、多模态、Agent", "note": "限时5折延续；原价 12/36", "hl": "good", "overseas": false, "p_a": 10.5, "p_b": 24.0, "p_c": 28.5}, {"vendor": "阿里千问", "model": "Qwen3.7-Plus", "input": 1.6, "cache": null, "output": 6.4, "cap": 93, "cap_tier": "强", "load": 3.2, "roi": 75, "eng": 82, "scene": "通用中文生产、批量脚本、工具调用", "note": "限时8折延续；原价 2/8", "hl": "good", "overseas": false, "p_a": 3.2, "p_b": 8.0, "p_c": 8.0}, {"vendor": "阿里千问", "model": "Qwen3.7-Flash", "input": 0.2, "cache": null, "output": 0.8, "cap": 84, "cap_tier": "够用", "load": 0.4, "roi": 94, "eng": 82, "scene": "高并发轻任务、低价批处理", "note": "≤3.2万 token 档；本期 ROI 榜首", "hl": null, "overseas": false, "p_a": 0.4, "p_b": 1.0, "p_c": 1.0}, {"vendor": "阿里千问", "model": "Qwen3.5-Flash", "input": 0.2, "cache": null, "output": 2.0, "cap": 83, "cap_tier": "够用", "load": 0.7, "roi": 88, "eng": 82, "scene": "分类、抽取、改写、低价批处理", "note": "≤12.8万 token 档", "hl": null, "overseas": false, "p_a": 0.7, "p_b": 2.2, "p_c": 1.3}, {"vendor": "字节豆包", "model": "Doubao Seed 2.1 Pro", "input": 6.0, "cache": 1.2, "output": 30.0, "cap": 96, "cap_tier": "顶级", "load": 13.5, "roi": 58, "eng": 71, "scene": "全模态旗舰、复杂 Agent、代码", "note": "全系旗舰；256K 档", "hl": null, "overseas": false, "p_a": 13.5, "p_b": 36.0, "p_c": 31.5}, {"vendor": "字节豆包", "model": "Doubao Seed 2.1 Turbo", "input": 3.0, "cache": 0.6, "output": 15.0, "cap": 93, "cap_tier": "强", "load": 6.75, "roi": 65, "eng": 71, "scene": "全模态生产、Agent、视频分析", "note": "256K 统一价", "hl": null, "overseas": false, "p_a": 6.75, "p_b": 18.0, "p_c": 15.75}, {"vendor": "字节豆包", "model": "Doubao Seed 2.0 Lite", "input": 0.6, "cache": 0.12, "output": 3.6, "cap": 92, "cap_tier": "强", "load": 1.5, "roi": 78, "eng": 71, "scene": "全模态理解、批量 Agent", "note": "≤3.2万 token 档", "hl": null, "overseas": false, "p_a": 1.5, "p_b": 4.2, "p_c": 3.3}, {"vendor": "字节豆包", "model": "Doubao Seed 2.0 Mini", "input": 0.2, "cache": 0.04, "output": 2.0, "cap": 86, "cap_tier": "较强", "load": 0.7, "roi": 85, "eng": 71, "scene": "高并发多模态、分类与轻任务", "note": "≤3.2万 token 档", "hl": null, "overseas": false, "p_a": 0.7, "p_b": 2.2, "p_c": 1.3}, {"vendor": "腾讯混元", "model": "混元 Hy3", "input": 1.0, "cache": 0.25, "output": 4.0, "cap": 90, "cap_tier": "强", "load": 2.0, "roi": 79, "eng": 81, "scene": "通用中文生产、Agent、批处理", "note": "Apache 2.0 开源；preview 8/31 下线", "hl": null, "overseas": false, "p_a": 2.0, "p_b": 5.0, "p_c": 5.0}, {"vendor": "小米", "model": "MiMo-V2.5-Pro", "input": 3.0, "cache": 0.025, "output": 6.0, "cap": 94, "cap_tier": "强", "load": 4.5, "roi": 71, "eng": 78, "scene": "开源旗舰、通用推理、Agent", "note": "OpenRouter 7月榜首", "hl": null, "overseas": false, "p_a": 4.5, "p_b": 9.0, "p_c": 13.5}, {"vendor": "小米", "model": "MiMo-V2.5", "input": 1.0, "cache": 0.02, "output": 2.0, "cap": 88, "cap_tier": "较强", "load": 1.5, "roi": 80, "eng": 78, "scene": "低成本跑量、分类、批处理", "note": "缓存写入限时免费", "hl": null, "overseas": false, "p_a": 1.5, "p_b": 3.0, "p_c": 4.5}, {"vendor": "月之暗面", "model": "Kimi K3", "input": 20.0, "cache": null, "output": 100.0, "cap": 96, "cap_tier": "顶级", "load": 45.0, "roi": 49, "eng": 77, "scene": "长程编程、端到端知识工作", "note": "官方直连 $3/$15；思考 token 按输出计费（实测占输出 43–77%）", "hl": null, "overseas": false, "p_a": 45.0, "p_b": 120.0, "p_c": 105.0}, {"vendor": "月之暗面", "model": "Kimi K2.7 Code", "input": 6.5, "cache": null, "output": 27.0, "cap": 93, "cap_tier": "强", "load": 13.25, "roi": 60, "eng": 77, "scene": "代码 Agent、长上下文编程", "note": "百炼渠道价；高速版 2 倍价", "hl": null, "overseas": false, "p_a": 13.25, "p_b": 33.5, "p_c": 32.75}, {"vendor": "智谱", "model": "GLM-5.3", "input": 10.08, "cache": null, "output": 31.67, "cap": 96, "cap_tier": "顶级", "load": 18.0, "roi": 59, "eng": 80, "scene": "长程 Coding Agent、复杂交付", "note": "腾讯云 TokenHub 渠道价；官方页未单列", "hl": "info", "overseas": false, "p_a": 18.0, "p_b": 41.75, "p_c": 48.24}, {"vendor": "智谱", "model": "GLM-5.2", "input": 8.0, "cache": null, "output": 28.0, "cap": 95, "cap_tier": "顶级", "load": 15.0, "roi": 61, "eng": 80, "scene": "长程 Coding Agent、复杂交付", "note": "百炼渠道价；1M 上下文", "hl": null, "overseas": false, "p_a": 15.0, "p_b": 36.0, "p_c": 39.0}, {"vendor": "智谱", "model": "GLM-4.7", "input": 3.0, "cache": null, "output": 14.0, "cap": 89, "cap_tier": "较强", "load": 6.5, "roi": 68, "eng": 80, "scene": "常规编码、中文分析、Agent", "note": "≤3.2万输入档", "hl": null, "overseas": false, "p_a": 6.5, "p_b": 17.0, "p_c": 15.5}, {"vendor": "MiniMax", "model": "MiniMax M3", "input": 4.2, "cache": null, "output": 16.8, "cap": 93, "cap_tier": "强", "load": 8.4, "roi": 65, "eng": 78, "scene": "长程 Agent、代码、通用推理", "note": "BenchLM 8月开放权重榜第一（68.8）", "hl": null, "overseas": false, "p_a": 8.4, "p_b": 21.0, "p_c": 21.0}, {"vendor": "MiniMax", "model": "MiniMax M2.7", "input": 2.1, "cache": null, "output": 8.4, "cap": 89, "cap_tier": "较强", "load": 4.2, "roi": 71, "eng": 78, "scene": "低成本思考、代码与批处理", "note": "百炼渠道价；仅思考模式", "hl": null, "overseas": false, "p_a": 4.2, "p_b": 10.5, "p_c": 10.5}, {"vendor": "百度文心", "model": "ERNIE 5.1", "input": 4.0, "cache": null, "output": 18.0, "cap": 94, "cap_tier": "强", "load": 8.5, "roi": 62, "eng": 69, "scene": "中文知识、企业 Agent、长文档", "note": "≤3.2万输入档；超长 6/22", "hl": null, "overseas": false, "p_a": 8.5, "p_b": 22.0, "p_c": 20.5}, {"vendor": "百度文心", "model": "ERNIE 4.5 Turbo", "input": 0.8, "cache": 0.2, "output": 3.2, "cap": 86, "cap_tier": "较强", "load": 1.6, "roi": 77, "eng": 69, "scene": "中文客服、内容、抽取与批处理", "note": "官方直连；12.8万上下文", "hl": null, "overseas": false, "p_a": 1.6, "p_b": 4.0, "p_c": 4.0}], "eng": {"OpenAI": {"s": 95, "e": 95, "r": 50, "p": 75, "total": 80}, "Anthropic": {"s": 95, "e": 90, "r": 50, "p": 85, "total": 81}, "Google": {"s": 90, "e": 90, "r": 55, "p": 75, "total": 78}, "xAI": {"s": 80, "e": 75, "r": 50, "p": 70, "total": 69}, "Mistral": {"s": 80, "e": 70, "r": 75, "p": 80, "total": 76}, "DeepSeek": {"s": 75, "e": 80, "r": 90, "p": 40, "total": 73}, "阿里千问": {"s": 90, "e": 85, "r": 85, "p": 60, "total": 82}, "字节豆包": {"s": 90, "e": 80, "r": 40, "p": 70, "total": 71}, "腾讯混元": {"s": 85, "e": 75, "r": 85, "p": 75, "total": 81}, "小米": {"s": 75, "e": 70, "r": 90, "p": 75, "total": 78}, "月之暗面": {"s": 80, "e": 75, "r": 85, "p": 65, "total": 77}, "智谱": {"s": 85, "e": 80, "r": 85, "p": 65, "total": 80}, "MiniMax": {"s": 80, "e": 75, "r": 85, "p": 70, "total": 78}, "百度文心": {"s": 85, "e": 75, "r": 40, "p": 75, "total": 69}}, "changes": [["DeepSeek 涨价落地", "8/17 00:00 生效：闲时输入 +50%、输出 +125%、缓存命中最高 +500%；峰时仍 ×2；V4 Pro 0813 正式版上线；并发上限 Pro 500 / Flash 2500。国内跑量首选改写为 Qwen3.5-Flash / MiMo-V2.5。", "warn"], ["Sonnet 5 推广价转正", "8/10 起 $2/$10 成为标准价，9/1 涨价取消——上版最大到期风险解除。", "good"], ["Grok 4.6 发布", "8/12：$2/$6、500K 上下文，AA 智能指数 61 追平 GPT-5.6 Sol（价格仅 40%）；Grok 4.1 Fast（$0.20/$0.50、2M）新入表。", "info"], ["Qwen3.8-Max 正式版", "2.4T 参数、百万上下文，12/36 元无折扣，承诺开源；3.7 系列 5 折/8 折延续。", "info"], ["GLM-5.3 渠道上线", "腾讯云 TokenHub 挂价 10.08/31.67 元，官方页未单列，按渠道价入表。", "info"], ["OpenAI 价格不变", "8/13 预览 Sol Ultrafast 模式（14 倍速），定价未公布。", ""], ["榜单信号", "SuperCLUE 开源榜 Kimi K3 第一（70.68）；BenchLM 开放权重榜 MiniMax M3 第一（68.8）。", ""], ["评分口径升级", "本期起 ROI 为可复算公式：0.65×性价比指数 + 0.35×工程指数；与上期不可直接比较。", "good"], ["临近节点", "8/31：混元 Hy3 preview 下线、Kimi k2.5 / moonshot-v1 停服；时段定价扩散中。", "warn"]], "conclusion": [["国内批量生产", "Qwen3.5-Flash", "0.70", "DeepSeek 涨价后全场最低", "MiMo-V2.5 / Doubao Seed 2.0 Mini"], ["国内复杂推理", "DeepSeek V4 Pro", "7.88（闲时）", "仍比海外旗舰便宜一个量级；峰时 ×2 需调度规避", "Qwen3.7-Max / GLM-5.2"], ["全球通用 Agent", "GPT-5.6 Luna", "3.39", "价格企稳，轻量 Agent 与批量任务首选", "Grok 4.1 Fast / Gemini 3 Flash Preview"], ["超低价全球跑量", "Grok 4.1 Fast", "2.21", "输出价全球最低 + 2M 上下文", "Gemini 3.5 Flash-Lite"], ["工具调用重型 Agent", "Grok 4.3 / Grok 4.6", "12.73 / 23.76", "工具调用强、输出价低", "Gemini 3.6 Flash / Qwen3.7-Plus"], ["关键编码 Agent", "Claude Sonnet 5", "30.55", "推广价转正，能力与稳定性平衡最好", "GPT-5.6 Terra / GLM-5.2"], ["多模态批处理", "Gemini 3.6 Flash", "22.91", "文/图/视频统一计费", "Gemini 3 Flash Preview / Doubao Seed 2.1 Turbo"], ["最高能力终审", "Claude Mythos 5 / Claude Opus 5", "152.73 / 76.36", "只用于高价值难题和最终审计", "GPT-5.6 Sol / Qwen3.8-Max"]], "sources": [["OpenAI API 定价", "https://platform.openai.com/docs/pricing", "T1"], ["OpenAI GPT-5.6 全系价格（BenchLM）", "https://benchlm.ai/openai/api-pricing", "T2"], ["Anthropic Claude 定价（BenchLM）", "https://benchlm.ai/anthropic/api-pricing", "T2"], ["Claude 平台更新：Sonnet 5 转正（8/10）", "https://docs.claude.com/en/release-notes/overview", "T1"], ["Google Gemini API 定价汇总", "https://felloai.com/gemini-pricing/", "T2"], ["xAI Grok 定价（BenchLM）", "https://benchlm.ai/xai/api-pricing", "T2"], ["Grok 4.6 价格与长上下文阶梯", "https://mem0.ai/blog/xai-grok-api-pricing", "T3"], ["Mistral 定价", "https://mistral.ai/pricing", "T1"], ["DeepSeek 模型与价格（8/17 新价）", "https://api-docs.deepseek.com/zh-cn/quick_start/pricing", "T1"], ["DeepSeek 8/13 涨价公告", "https://finance.sina.com.cn/stock/t/2026-08-13/doc-inineqhp9984450.shtml", "T3"], ["阿里云百炼模型价格", "https://help.aliyun.com/zh/model-studio/model-pricing", "T1"], ["腾讯云 TokenHub 模型价格", "https://cloud.tencent.com/document/product/1823/130055", "T1"], ["火山方舟豆包价格（TokenPlan）", "https://tokenplan.vip/huoshan-fangzhou-token-api", "T2"], ["小米 MiMo 官方定价", "https://mimo.mi.com/docs/zh-CN/price/pay-as-you-go", "T1"], ["人民币中间价（中国外汇交易中心）", "https://www.chinamoney.com.cn/chinese/bkccpr/", "T1"]], "gaps": ["GLM-5.3 智谱官方定价页未单列，按腾讯云 TokenHub 渠道价；百炼渠道价未核实。", "Kimi k2.5 / moonshot-v1 系列 8/31 停服沿用上期信息，本期未重新核实。", "豆包与文心的缓存价为第三方佐证；Grok 4.1 Fast 官方未单列缓存价。", "第三方网关（API易等）DeepSeek 可能按峰值固定价计费，与官方闲时价差异最高 2 倍。", "Qwen3.8-Max 开源时间官方仅称“将发布”；Gemini 3.5 Pro 仍无公共 API 与定价。", "海外价格依赖 T2 聚合页交叉，可能与官方页面存在小时级延迟。"], "profiles": ["Qwen3.5-Flash", "MiMo-V2.5", "Grok 4.1 Fast", "DeepSeek V4 Flash", "GPT-5.6 Luna", "Qwen3.7-Plus", "DeepSeek V4 Pro", "Grok 4.3", "Qwen3.7-Max", "Gemini 3.6 Flash", "Claude Sonnet 5", "GPT-5.6 Terra"]};
+const $ = s => document.querySelector(s);
+const fmt = n => n==null ? "无" : (Math.round(n*100)/100).toString();
+
+// header chips
+$("#chips").innerHTML = [
+  [D.meta.n_models+" 个","主流模型"],[D.meta.n_vendors+" 家","主要厂商"],
+  ["快照",D.meta.snapshot],["汇率","1$ = "+D.meta.fx],["上一快照",D.meta.prev]
+].map(([a,b])=>`<div class="chip"><b>${a}</b>${b}</div>`).join("");
+
+// changes
+$("#changes").innerHTML = D.changes.map(([t,p,hl])=>
+  `<div class="card"><h3>${t}${hl?`<span class="badge b-${hl}">${{good:"利好",warn:"风险",info:"新"}[hl]}</span>`:""}</h3><p>${p}</p></div>`).join("");
+
+// conclusion
+$("#concl").innerHTML = "<tr><th>任务类型</th><th>首选模型</th><th>标准负载成本</th><th>为什么</th><th>备选</th></tr>" +
+  D.conclusion.map(r=>`<tr><td>${r[0]}</td><td><b>${r[1]}</b></td><td class="num">${r[2]}</td><td class="dim">${r[3]}</td><td class="dim">${r[4]}</td></tr>`).join("");
+
+// scatter
+const models = D.models;
+const svgNS="http://www.w3.org/2000/svg";
+function drawScatter(filter){
+  const el=$("#scatter"); el.innerHTML="";
+  const W=el.clientWidth,H=400,pad={l:52,r:150,t:22,b:44};
+  const svg=document.createElementNS(svgNS,"svg");
+  svg.setAttribute("width","100%");svg.setAttribute("height",H);
+  const data=models.filter(m=>!filter||m.vendor===filter);
+  const xs=models.map(m=>Math.log10(m.load)),ys=models.map(m=>m.cap);
+  const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys)-2,y1=Math.max(...ys)+2;
+  const X=v=>pad.l+(Math.log10(v)-x0)/(x1-x0)*(W-pad.l-pad.r);
+  const Y=v=>H-pad.b-(v-y0)/(y1-y0)*(H-pad.t-pad.b);
+  const oc=m=>m.overseas?"#0066ff":"#0e9dc2";
+  // gridlines
+  [0.1,1,10,100,500].forEach(v=>{ if(v<Math.pow(10,x0)||v>Math.pow(10,x1))return;
+    const l=document.createElementNS(svgNS,"line");
+    l.setAttribute("x1",X(v));l.setAttribute("x2",X(v));l.setAttribute("y1",pad.t);l.setAttribute("y2",H-pad.b);
+    l.setAttribute("stroke","#d5dde8");l.setAttribute("stroke-dasharray","3 4");svg.appendChild(l);
+    const t=document.createElementNS(svgNS,"text");
+    t.setAttribute("x",X(v));t.setAttribute("y",H-pad.b+18);t.setAttribute("fill","#5b6b7f");
+    t.setAttribute("font-size","11");t.setAttribute("text-anchor","middle");t.textContent=v+"元";svg.appendChild(t);
+  });
+  [80,85,90,95,100].forEach(v=>{ if(v<y0||v>y1)return;
+    const t=document.createElementNS(svgNS,"text");
+    t.setAttribute("x",pad.l-8);t.setAttribute("y",Y(v)+4);t.setAttribute("fill","#5b6b7f");
+    t.setAttribute("font-size","11");t.setAttribute("text-anchor","end");t.textContent=v;svg.appendChild(t);
+  });
+  const tip=$("#tooltip");
+  const pts=data.map(m=>({m,cx:X(m.load),cy:Y(m.cap),r:2.5+m.roi/11}));
+  pts.forEach(p=>{
+    const c=document.createElementNS(svgNS,"circle");
+    c.setAttribute("cx",p.cx);c.setAttribute("cy",p.cy);c.setAttribute("r",p.r);
+    c.setAttribute("fill",p.m.overseas?"rgba(0,102,255,.45)":"rgba(14,157,194,.45)");
+    c.setAttribute("stroke",oc(p.m));c.setAttribute("stroke-width","1.2");
+    c.style.cursor="pointer";
+    c.addEventListener("mousemove",e=>{
+      tip.style.display="block";
+      tip.style.left=(e.clientX+14)+"px";tip.style.top=(e.clientY+14)+"px";
+      tip.innerHTML=`<b>${p.m.model}</b> · ${p.m.vendor}<br>输入 ${fmt(p.m.input)} / 输出 ${fmt(p.m.output)} 元<br>标准负载 ${p.m.load} 元<br>能力 <b>${p.m.cap}</b>（${p.m.cap_tier}） · ROI <b>${p.m.roi}</b><br><span style="color:var(--dim)">${p.m.scene}</span>`;
+    });
+    c.addEventListener("mouseleave",()=>tip.style.display="none");
+    svg.appendChild(c);
+  });
+  // 点旁标名：按 y 排序后防重叠，必要时画引线
+  const labs=pts.slice().sort((a,b)=>a.cy-b.cy);
+  let lastY=-1e9;
+  labs.forEach(p=>{
+    let ly=p.cy+3.5;
+    if(ly-lastY<11) ly=lastY+11;
+    lastY=ly;
+    const tx=p.cx+p.r+4;
+    if(Math.abs(ly-3.5-p.cy)>4){
+      const lead=document.createElementNS(svgNS,"line");
+      lead.setAttribute("x1",p.cx+p.r+1);lead.setAttribute("y1",p.cy);
+      lead.setAttribute("x2",tx-2);lead.setAttribute("y2",ly-3.5);
+      lead.setAttribute("stroke","#c4cede");lead.setAttribute("stroke-width","0.8");svg.appendChild(lead);
+    }
+    const t=document.createElementNS(svgNS,"text");
+    t.setAttribute("x",tx);t.setAttribute("y",ly);
+    t.setAttribute("fill",oc(p.m));t.setAttribute("font-size","10");t.setAttribute("font-weight","600");
+    t.textContent=p.m.model;svg.appendChild(t);
+  });
+  el.appendChild(svg);
+}
+const vendors=[...new Set(models.map(m=>m.vendor))];
+let activeVendor=null;
+function drawLegend(){
+  $("#legend").innerHTML=`<span><span class="dot" style="background:#0066ff"></span>海外</span><span><span class="dot" style="background:#0e9dc2"></span>国内</span>`+
+    vendors.map(v=>`<span class="tab" style="padding:3px 10px;font-size:11px;${activeVendor===v?'background:var(--blue);color:#fff':''}" data-v="${v}">${v}</span>`).join("");
+  document.querySelectorAll("#legend .tab").forEach(t=>t.onclick=()=>{
+    activeVendor = activeVendor===t.dataset.v?null:t.dataset.v; drawLegend(); drawScatter(activeVendor);
+  });
+}
+drawLegend(); drawScatter(null);
+window.addEventListener("resize",()=>drawScatter(activeVendor));
+
+// price table
+let mkt="all", sortKey="load", sortAsc=true;
+const cols=[["vendor","厂商"],["model","模型"],["input","输入价"],["cache","缓存输入"],["output","输出价"],["load","标准负载成本"],["cap","能力"],["roi","ROI"],["scene","最适用场景"],["note","定价备注"]];
+function roiColor(r){return r>=80?"var(--good)":r>=60?"var(--cyan)":r>=45?"var(--info)":"var(--warn)"}
+function drawPrices(){
+  const q=$("#q").value.trim().toLowerCase();
+  let rows=models.filter(m=>(mkt==="all"||(mkt==="ov"?m.overseas:!m.overseas))&&(!q||m.model.toLowerCase().includes(q)||m.vendor.toLowerCase().includes(q)));
+  rows.sort((a,b)=>{let x=a[sortKey],y=b[sortKey];if(x==null)x=-1;if(y==null)y=-1;
+    return (typeof x==="string"?x.localeCompare(y,"zh"):x-y)*(sortAsc?1:-1)});
+  $("#prices").innerHTML="<tr>"+cols.map(([k,n])=>`<th data-k="${k}">${n}${sortKey===k?(sortAsc?" ▲":" ▼"):""}</th>`).join("")+"</tr>"+
+    rows.map(m=>`<tr class="${m.hl?'hl-'+m.hl:''}"><td>${m.vendor}</td><td><b>${m.model}</b></td>
+      <td class="num">${fmt(m.input)}</td><td class="num dim">${fmt(m.cache)}</td><td class="num">${fmt(m.output)}</td>
+      <td class="num">${m.load}</td><td class="center">${m.cap}<span class="dim">（${m.cap_tier}）</span></td>
+      <td class="center"><span class="roi-pill" style="background:var(--panel2);color:${roiColor(m.roi)}">${m.roi}</span></td>
+      <td class="dim">${m.scene}</td><td class="dim">${m.note}</td></tr>`).join("");
+  document.querySelectorAll("#prices th").forEach(th=>th.onclick=()=>{
+    const k=th.dataset.k; if(sortKey===k)sortAsc=!sortAsc;else{sortKey=k;sortAsc=true;} drawPrices();
+  });
+}
+document.querySelectorAll(".tabs .tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tabs .tab").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active"); mkt=t.dataset.mkt; drawPrices();
+});
+$("#q").addEventListener("input",drawPrices);
+drawPrices();
+
+// profiles
+const prof=D.profiles.map(n=>models.find(m=>m.model===n)).filter(Boolean);
+const maxC=Math.max(...prof.map(m=>m.p_c));
+$("#profiles").innerHTML=prof.map(m=>{
+  const w=v=>(v/maxC*100).toFixed(1);
+  return `<div class="barrow"><div class="name">${m.model}</div>
+    <div class="bar barA" style="width:${w(m.p_a)*0.7}%" title="A ${m.p_a}"></div>
+    <div class="bar barB" style="width:${w(m.p_b)*0.7}%" title="B ${m.p_b}"></div>
+    <div class="bar barC" style="width:${w(m.p_c)*0.7}%" title="C ${m.p_c}"></div>
+    <span class="dim" style="font-size:11px">${m.p_a} / ${m.p_b} / ${m.p_c}</span></div>`;
+}).join("");
+
+// eng table
+$("#eng").innerHTML="<tr><th>厂商</th><th>稳定性</th><th>工具生态</th><th>可替换性</th><th>价格可预期</th><th>工程指数</th></tr>"+
+  Object.entries(D.eng).map(([v,e])=>`<tr><td>${v}</td><td class="center">${e.s}</td><td class="center">${e.e}</td><td class="center">${e.r}</td><td class="center">${e.p}</td><td class="center"><b style="color:var(--cyan)">${e.total}</b></td></tr>`).join("");
+
+// sources & gaps
+$("#sources").innerHTML=D.sources.map(([n,u,t])=>`<div class="src"><span class="tier ${t.toLowerCase()}">${t}</span><a href="${u}" target="_blank">${n}</a></div>`).join("");
+$("#gaps").innerHTML=D.gaps.map(g=>`<li>${g}</li>`).join("");
+</script>
+</body>
+</html>
