@@ -126,10 +126,11 @@ footer{border-top-color:rgba(90,104,120,.18)}
     <div class="tab active" data-mkt="all">全部</div>
     <div class="tab" data-mkt="ov">海外（18）</div>
     <div class="tab" data-mkt="cn">国内（23）</div>
+    <div class="tab" data-mkt="local">本地部署（9）</div>
     <input class="search" id="q" placeholder="搜索模型 / 厂商…">
   </div>
   <div style="overflow-x:auto"><table id="prices"></table></div>
-  <div class="note">绿=本期利好 · 蓝=新模型 · 红=涨价/风险。DeepSeek 为 8/17 新价闲时档（峰时 ×2）。</div>
+  <div class="note" id="price-note">绿=本期利好 · 蓝=新模型 · 红=涨价/风险。DeepSeek 为 8/17 新价闲时档（峰时 ×2）。</div>
 </section>
 
 <section><h2>三种负载画像成本测算<span class="tag">元 / 每100万输入当量</span></h2>
@@ -285,25 +286,54 @@ window.addEventListener("resize",()=>drawScatter(activeVendor));
 // price table
 let mkt="all", sortKey="load", sortAsc=true;
 const cols=[["vendor","厂商"],["model","模型"],["input","输入价"],["cache","缓存输入"],["output","输出价"],["load","标准负载成本"],["cap","能力"],["roi","ROI"],["scene","最适用场景"],["note","定价备注"]];
+const PRICE_NOTE="绿=本期利好 · 蓝=新模型 · 红=涨价/风险。DeepSeek 为 8/17 新价闲时档（峰时 ×2）。";
+const LOCAL_NOTE="口径：自购=整机折算价（5090 约 3 万/卡、H100 约 25 万/卡，2026-08 行情估算，含主机分摊），36 个月线性摊销，不含电与运维；云租按 5090 约 3.5 元/卡时、H100 约 18 元/卡时（估算）×720h/月；显存=FP8 权重+约 20% KV/运行时余量，MoE 按总参数计；盈亏平衡=月摊销 ÷（该模型 API 标准负载成本 ×8 元/亿token）。模型规模除 Qwen3.8-Max（官方公布 2.4T）外均为估算。结论：当前 API 价格下，纯为省钱自部署普遍不划算（平衡点都在百亿~千亿 token/月量级），本地部署的真实价值在数据合规、私有化与调价避险。";
+// 本地部署（8/19 新增）：规模/显存为估算；capex 万元，amort/rent 元/月，breakeven 亿token/月
+const LOCAL=[
+ {vendor:"小米",model:"MiMo-V2.5",size:"30B（估算）",vram:"≈36GB",hw:"5090×2",capex:6,amort:1667,rent:5000,breakeven:139,note:"INT4 可单卡 5090；开源可自部署"},
+ {vendor:"阿里千问",model:"Qwen3.5-Flash",size:"35B（估算）",vram:"≈42GB",hw:"5090×2",capex:6,amort:1667,rent:5000,breakeven:298,note:"API 价极低，自部署几乎无成本动机"},
+ {vendor:"腾讯混元",model:"混元 Hy3",size:"80B（估算）",vram:"≈96GB",hw:"5090×4",capex:12,amort:3333,rent:10000,breakeven:208,note:"Apache 2.0；preview 8/31 下线后自部署是延续选项"},
+ {vendor:"小米",model:"MiMo-V2.5-Pro",size:"100B MoE（估算）",vram:"≈120GB",hw:"5090×4",capex:12,amort:3333,rent:10000,breakeven:93,note:"百亿级 MoE 里部署门槛最低档"},
+ {vendor:"阿里千问",model:"Qwen3.7-Plus",size:"110B（估算）",vram:"≈132GB",hw:"H100×2（或 5090×6）",capex:50,amort:13889,rent:26000,breakeven:543,note:"5 折延续期间 API 更划算"},
+ {vendor:"MiniMax",model:"MiniMax M3",size:"450B MoE（估算）",vram:"≈540GB",hw:"H100×8",capex:200,amort:55556,rent:104000,breakeven:827,note:"开放权重榜第一；单台 8 卡整机可跑"},
+ {vendor:"DeepSeek",model:"DeepSeek V4 Flash",size:"300B MoE（估算）",vram:"≈360GB",hw:"H100×8",capex:200,amort:55556,rent:104000,breakeven:2646,note:"涨价后 API 仍远低于自部署摊销"},
+ {vendor:"DeepSeek",model:"DeepSeek V4 Pro",size:"670B MoE（估算）",vram:"≈800GB",hw:"H100×16（2台8卡）",capex:400,amort:111111,rent:208000,breakeven:1764,note:"顶级能力档，私有化合规场景才考虑"},
+ {vendor:"阿里千问",model:"Qwen3.8-Max",size:"2.4T（官方）",vram:"≈2.9TB",hw:"H100×40（5台8卡）",capex:1000,amort:277778,rent:520000,breakeven:1653,note:"权重未发布（官方承诺将开源），配置为预估"}
+];
+const localCols=[["vendor","厂商"],["model","模型"],["size","规模"],["vram","显存需求"],["hw","参考配置"],["capex","自购(万)"],["amort","摊销/月"],["rent","云租/月"],["breakeven","盈亏平衡(亿token/月)"],["note","备注"]];
 function roiColor(r){return r>=80?"var(--good)":r>=60?"var(--cyan)":r>=45?"var(--info)":"var(--warn)"}
 function drawPrices(){
   const q=$("#q").value.trim().toLowerCase();
-  let rows=models.filter(m=>(mkt==="all"||(mkt==="ov"?m.overseas:!m.overseas))&&(!q||m.model.toLowerCase().includes(q)||m.vendor.toLowerCase().includes(q)));
-  rows.sort((a,b)=>{let x=a[sortKey],y=b[sortKey];if(x==null)x=-1;if(y==null)y=-1;
-    return (typeof x==="string"?x.localeCompare(y,"zh"):x-y)*(sortAsc?1:-1)});
-  $("#prices").innerHTML="<tr>"+cols.map(([k,n])=>`<th data-k="${k}">${n}${sortKey===k?(sortAsc?" ▲":" ▼"):""}</th>`).join("")+"</tr>"+
-    rows.map(m=>`<tr class="${m.hl?'hl-'+m.hl:''}"><td>${m.vendor}</td><td><b>${m.model}</b></td>
-      <td class="num">${fmt(m.input)}</td><td class="num dim">${fmt(m.cache)}</td><td class="num">${fmt(m.output)}</td>
-      <td class="num">${m.load}</td><td class="center">${m.cap}<span class="dim">（${m.cap_tier}）</span></td>
-      <td class="center"><span class="roi-pill" style="background:var(--panel2);color:${roiColor(m.roi)}">${m.roi}</span></td>
-      <td class="dim">${m.scene}</td><td class="dim">${m.note}</td></tr>`).join("");
+  if(mkt==="local"){
+    let rows=LOCAL.filter(m=>!q||m.model.toLowerCase().includes(q)||m.vendor.toLowerCase().includes(q));
+    rows.sort((a,b)=>{let x=a[sortKey],y=b[sortKey];if(x==null)x=-1;if(y==null)y=-1;
+      return (typeof x==="string"?x.localeCompare(y,"zh"):x-y)*(sortAsc?1:-1)});
+    $("#prices").innerHTML="<tr>"+localCols.map(([k,n])=>`<th data-k="${k}">${n}${sortKey===k?(sortAsc?" ▲":" ▼"):""}</th>`).join("")+"</tr>"+
+      rows.map(m=>`<tr><td>${m.vendor}</td><td><b>${m.model}</b></td>
+        <td class="dim">${m.size}</td><td class="num">${m.vram}</td><td class="dim">${m.hw}</td>
+        <td class="num">${m.capex}</td><td class="num">${m.amort.toLocaleString()}</td><td class="num">${m.rent.toLocaleString()}</td>
+        <td class="num">≈${m.breakeven}</td><td class="dim">${m.note}</td></tr>`).join("");
+  }else{
+    let rows=models.filter(m=>(mkt==="all"||(mkt==="ov"?m.overseas:!m.overseas))&&(!q||m.model.toLowerCase().includes(q)||m.vendor.toLowerCase().includes(q)));
+    rows.sort((a,b)=>{let x=a[sortKey],y=b[sortKey];if(x==null)x=-1;if(y==null)y=-1;
+      return (typeof x==="string"?x.localeCompare(y,"zh"):x-y)*(sortAsc?1:-1)});
+    $("#prices").innerHTML="<tr>"+cols.map(([k,n])=>`<th data-k="${k}">${n}${sortKey===k?(sortAsc?" ▲":" ▼"):""}</th>`).join("")+"</tr>"+
+      rows.map(m=>`<tr class="${m.hl?'hl-'+m.hl:''}"><td>${m.vendor}</td><td><b>${m.model}</b></td>
+        <td class="num">${fmt(m.input)}</td><td class="num dim">${fmt(m.cache)}</td><td class="num">${fmt(m.output)}</td>
+        <td class="num">${m.load}</td><td class="center">${m.cap}<span class="dim">（${m.cap_tier}）</span></td>
+        <td class="center"><span class="roi-pill" style="background:var(--panel2);color:${roiColor(m.roi)}">${m.roi}</span></td>
+        <td class="dim">${m.scene}</td><td class="dim">${m.note}</td></tr>`).join("");
+  }
   document.querySelectorAll("#prices th").forEach(th=>th.onclick=()=>{
     const k=th.dataset.k; if(sortKey===k)sortAsc=!sortAsc;else{sortKey=k;sortAsc=true;} drawPrices();
   });
 }
 document.querySelectorAll(".tabs .tab").forEach(t=>t.onclick=()=>{
   document.querySelectorAll(".tabs .tab").forEach(x=>x.classList.remove("active"));
-  t.classList.add("active"); mkt=t.dataset.mkt; drawPrices();
+  t.classList.add("active"); mkt=t.dataset.mkt;
+  sortKey=(mkt==="local"?"amort":"load"); sortAsc=true;
+  $("#price-note").textContent=(mkt==="local"?LOCAL_NOTE:PRICE_NOTE);
+  drawPrices();
 });
 $("#q").addEventListener("input",drawPrices);
 drawPrices();
